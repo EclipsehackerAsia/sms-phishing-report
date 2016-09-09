@@ -1,4 +1,4 @@
-# Script to Generate Report of Phishing IP Addresses from Cymon API
+# Generate a Report of Phishing IP Addresses from Cymon API
 
 Install dependencies:
 
