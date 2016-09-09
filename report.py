@@ -2,29 +2,48 @@
 
 from yattag import Doc, indent
 import slumber
+import json
+import time
 
 doc, tag, text = Doc().tagtext()
 
 api = slumber.API("https://cymon.io:443/api/nexus/v1/")
 
-blacklist = {}
-for i in range(1,4):
-    blacklist[i] = api.blacklist.ip.phishing().get(days=i, limit=5000)
+blacklist = api.blacklist.ip.phishing().get(days=3, limit=20)
 
-"""
-with tag('ul'):
-    for ip in blacklist['results']:
-        with tag('li'):
-            text(ip['addr'])
+results = []
+for ip in blacklist['results']:
+    addr = ip['addr']
+    created = api.ip(addr).get()['created']
+    date = time.strftime('%Y-%m-%d', time.strptime(created, '%Y-%m-%dT%H:%M:%SZ'))
+    results.append((addr, date))
 
-result = indent(
+doc.asis('<!DOCTYPE html>')
+with tag('html'):
+    with tag('head'):
+        with tag('style'):
+            text('* { font-family: monospace; } td, th { padding: 5px 20px; }')
+    with tag('body'):
+        with tag('h1'):
+            text('IP Addresses Flagged for Phishing')
+        with tag('table'):
+            with tag('tr'):
+                with tag('th'):
+                    text('IP Address')
+                with tag('th'):
+                    text('Date')
+            for result in results:
+                with tag('tr'):
+                    with tag('td'):
+                        text(result[0])
+                    with tag('td'):
+                        text(result[1])
+
+output = indent(
     doc.getvalue(),
     indentation = '    ',
     newline = '\r\n'
 )
 
-print(result)
-"""
+print(output)
 
-results = [blacklist[i]['count'] for i in range(1,4)]
-print(results)
